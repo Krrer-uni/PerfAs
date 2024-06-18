@@ -1,0 +1,2 @@
+delta zamiast czasu
+wydarzenia nadchodzące mają highlight np kolory 30s czerwony, 60s żółta

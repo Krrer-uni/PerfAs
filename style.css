@@ -1,0 +1,81 @@
+body {
+    font-family: sans-serif;
+    background-color: black;
+    color: aliceblue;
+    margin: 20px;
+  }
+  
+  #audio-controls {
+    margin-top: 20px;
+  }
+  
+  #seek-bar {
+    width: 100%;
+  }
+  
+  #text-display {
+    margin-top: 20px;
+    font-size: 16px;
+  }
+  
+  #loaders {
+    list-style-type: none;
+    width: 90%;
+  }
+
+  #loaders li {
+    border: 2px dashed #ccc;
+    padding: 20px;
+    text-align: center;
+    font-size: 7rem;
+    overflow: hidden;
+    height: 100px;
+
+  }
+
+  audio{
+    width: 100%;
+  }
+
+  #next_event{
+    font-size: 3rem;
+  }
+
+  #timestamps_list li{
+    font-size: 1.5em;
+    overflow: auto;
+    margin: 10px;
+  }
+
+  #timestamps_list #next{
+    font-size: 3em;
+    width: auto;
+  }
+
+  #timestamps_list #hidden{
+    font-size: 0em;
+    visibility: hidden;
+    width: auto;
+  }
+
+  #play_display{
+    display: flex;
+  }
+
+  #play_display #timestamps_list, #time_of_play{
+    display: inline-block;
+    align-self: center;
+    width: 50%;
+    height: 80%;
+  }
+
+  #play_display #time_of_play{
+    text-align: center;
+    font-size: 20em;
+    vertical-align: middle;
+    max-height: 100%;
+    max-width: 100%;
+    /* width: fit-content; */
+    flex-grow: 1;
+    width: 50%;
+  }
