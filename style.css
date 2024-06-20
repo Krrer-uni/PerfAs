@@ -88,6 +88,10 @@ body {
     color: red;
 }
 
+.incoming {
+  color: yellow;
+}
+
 .next>span {
 	font-size:  30px;
 }

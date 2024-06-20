@@ -16,7 +16,7 @@ let audioFileLoaded = false;
 let csvFileLoaded = false;
 let currentPlaybackTime = 0;
 let timestamps;
-
+let ALERT_TIME = 60;
 function makeTimestampList(timestamps_list) {
     timestampsDisplay = document.getElementById('timestamps_list');
     timestampsDisplay.innerHTML = '';
@@ -46,11 +46,16 @@ function makeTimestampList(timestamps_list) {
     }
 }
 
-function setNextTimeStamp(id) {
+function updateTimeStamps(id,time) {
+    let currentTime = audioPlayer.currentTime;
+
     var next_timestamp_text = document.getElementById('next_event');
     timestampsDisplay = document.getElementById('timestamps_list');
     for (var i = 0; i < timestamps.length; i++) {
         let item = timestampsDisplay.childNodes[i];
+        let timestamp = timestamps[i]["czas"];
+        let times = timestamp.split(':');
+        let timestampSeconds = parseInt(times[1]) + parseInt(times[0]) * 60;
         if (id > i) {
             item.className = "timestamp-item hidden";
         } else if (id == i) {
@@ -58,9 +63,12 @@ function setNextTimeStamp(id) {
             if (id > 0) {
                 next_timestamp_text.textContent = timestamps[i - 1]['czas'] + ' - ' + timestamps[i - 1]['akcja'];
             }
-        } else {
+        } else if(timestampSeconds - currentTime  < ALERT_TIME) {
+            item.className = "timestamp-item incoming";
+        } else{
             item.className = "timestamp-item inactive";
         }
+
     }
 }
 
@@ -163,8 +171,8 @@ audioPlayer.ontimeupdate = function() {
         let times = time.split(':');
         let time_sec = parseInt(times[1]) + parseInt(times[0]) * 60;
         if (time_sec >= currentPlaybackTime) {
-            setNextTimeStamp(i);
-            break;
+            updateTimeStamps(i);
+            break
         }
         current_timestamp = i;
     }
