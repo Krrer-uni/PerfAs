@@ -4,8 +4,12 @@ const playPauseButton = document.getElementById('play-pause');
 const seekBar = document.getElementById('seek-bar');
 const textDisplay = document.getElementById('text-display');
 const audioPlayer = document.getElementById('player');
+const player_forward = document.getElementById('player_forward')
+const player_backward = document.getElementById('player_backward')
 const csvDropZone = document.getElementById('csv-drop');
 const next_timestamp_text = document.getElementById('next_event');
+const player_controls = document.getElementById('player_controls');
+
 let timestampsDisplay = document.getElementById('timestamps_list');
 
 let audioContext;
@@ -48,7 +52,6 @@ function makeTimestampList(timestamps_list) {
 
 function updateTimeStamps(id,time) {
     let currentTime = audioPlayer.currentTime;
-
     var next_timestamp_text = document.getElementById('next_event');
     timestampsDisplay = document.getElementById('timestamps_list');
     for (var i = 0; i < timestamps.length; i++) {
@@ -188,6 +191,14 @@ function updatePlayTimer() {
     let text = (sec < 10) ? `${min}:0${sec}` : `${min}:${sec}`;
     timer.textContent = text;
 }
+player_forward.addEventListener('click',function(){
+    audioPlayer.currentTime += 1
+})
+
+player_backward.addEventListener('click',function(){
+    audioPlayer.currentTime -= 1
+})
+
 
 // Initialize the delta time updates every second
 setInterval(updateDeltaTimes, 1000);
