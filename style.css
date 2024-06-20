@@ -32,9 +32,20 @@ body {
     height: 100px;
 
   }
-
+  
   audio{
     width: 100%;
+  }
+
+  #player_controls {
+    display: flex;
+    width: 100%;
+}
+
+  #player_controls > button {
+    flex-grow: 1;
+    height: 2em; /* Adjust the height as needed */
+    font-size: 2em; /* Adjust the font size as needed */
   }
 
   #next_event{
@@ -79,3 +90,28 @@ body {
     flex-grow: 1;
     width: 50%;
   }
+.hidden {
+    display: none;
+}
+
+.next {
+    font-weight: bold;
+    color: red;
+}
+
+.incoming {
+  color: yellow;
+}
+
+.next>span {
+	font-size:  30px;
+}
+
+.inactive {
+    color: gray;
+}
+
+.timestamp-item.next .delta-time {
+    font-weight: bold;
+    color: red;
+}

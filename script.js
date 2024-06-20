@@ -3,9 +3,13 @@ const audioControls = document.getElementById('audio-controls');
 const playPauseButton = document.getElementById('play-pause');
 const seekBar = document.getElementById('seek-bar');
 const textDisplay = document.getElementById('text-display');
-const audioPlayer = document.getElementById('player')
-const csvDropZone = document.getElementById('csv-drop')
-const next_timestamp_text = document.getElementById('next_event')
+const audioPlayer = document.getElementById('player');
+const player_forward = document.getElementById('player_forward')
+const player_backward = document.getElementById('player_backward')
+const csvDropZone = document.getElementById('csv-drop');
+const next_timestamp_text = document.getElementById('next_event');
+const player_controls = document.getElementById('player_controls');
+
 let timestampsDisplay = document.getElementById('timestamps_list');
 
 let audioContext;
@@ -16,78 +20,107 @@ let audioFileLoaded = false;
 let csvFileLoaded = false;
 let currentPlaybackTime = 0;
 let timestamps;
-
-function makeTimestampList(timestamps_list){
+let ALERT_TIME = 60;
+function makeTimestampList(timestamps_list) {
     timestampsDisplay = document.getElementById('timestamps_list');
-    console.log(timestampsDisplay)
     timestampsDisplay.innerHTML = '';
 
-    for (var i = 0; i < timestamps_list.length; i++){
+    for (var i = 0; i < timestamps_list.length; i++) {
         var item = document.createElement('li');
-        
-        timestamp_time = document.createTextNode(timestamps_list[i]["czas"])
-        timestamp_time.id  = "timestamp_time"
-        item.appendChild(timestamp_time)
+        item.className = "timestamp-item";
+        item.dataset.index = i;
 
-        timestamp_text = document.createTextNode(" - " + timestamps_list[i]["akcja"])
-        timestamp_text.id  = "timestamp_text"
-        item.appendChild(timestamp_text)
-        
-        timestampsDisplay.appendChild(item)
+        let current_time = timestamps_list[i]["czas"];
+
+        let timestampTimeText = document.createElement('span');
+        timestampTimeText.className = "timestamp-time";
+        timestampTimeText.textContent = current_time;
+        item.appendChild(timestampTimeText);
+
+        let timestampText = document.createElement('span');
+        timestampText.className = "timestamp-text";
+        timestampText.textContent = " - " + timestamps_list[i]["akcja"];
+        item.appendChild(timestampText);
+
+        let deltaSpan = document.createElement('span');
+        deltaSpan.className = "delta-time";
+        item.appendChild(deltaSpan);
+
+        timestampsDisplay.appendChild(item);
     }
 }
 
-function setNextTimeStamp(id){
-    var next_timestamp_text = document.getElementById('next_event')
+function updateTimeStamps(id,time) {
+    let currentTime = audioPlayer.currentTime;
+    var next_timestamp_text = document.getElementById('next_event');
     timestampsDisplay = document.getElementById('timestamps_list');
-    for (var i = 0; i < timestamps.length;i++){
-        if (id > i){
-            timestampsDisplay.childNodes[i].id = "hidden"
-        } else if(id == i){
-            timestampsDisplay.childNodes[i].id = "next"
-            if(id > 0){
-            // timestampsDisplay.childNodes[i-1].id = "current"
-            next_timestamp_text.textContent = timestamps[i-1]['czas'] +' - ' +timestamps[i-1]['akcja']
-
+    for (var i = 0; i < timestamps.length; i++) {
+        let item = timestampsDisplay.childNodes[i];
+        let timestamp = timestamps[i]["czas"];
+        let times = timestamp.split(':');
+        let timestampSeconds = parseInt(times[1]) + parseInt(times[0]) * 60;
+        if (id > i) {
+            item.className = "timestamp-item hidden";
+        } else if (id == i) {
+            item.className = "timestamp-item next";
+            if (id > 0) {
+                next_timestamp_text.textContent = timestamps[i - 1]['czas'] + ' - ' + timestamps[i - 1]['akcja'];
             }
-        } else {
-            timestampsDisplay.childNodes[i].id = "inactive"
-            
+        } else if(timestampSeconds - currentTime  < ALERT_TIME) {
+            item.className = "timestamp-item incoming";
+        } else{
+            item.className = "timestamp-item inactive";
         }
+
     }
 }
 
+function updateDeltaTimes() {
+    let currentTime = audioPlayer.currentTime;
+    let timestampItems = document.querySelectorAll('.timestamp-item');
+
+    timestampItems.forEach(item => {
+        let index = item.dataset.index;
+        let timestamp = timestamps[index]["czas"];
+        let times = timestamp.split(':');
+        let timestampSeconds = parseInt(times[1]) + parseInt(times[0]) * 60;
+        let deltaSeconds = timestampSeconds - currentTime;
+
+        let deltaMinutes = Math.floor(deltaSeconds / 60);
+        let deltaRemainderSeconds = Math.floor(deltaSeconds % 60);
+
+        let deltaText = `(${deltaMinutes}:${deltaRemainderSeconds < 10 ? '0' : ''}${deltaRemainderSeconds})`;
+        item.querySelector('.delta-time').textContent = deltaText;
+    });
+}
 
 // Function to handle drag and drop event
 function handleDrop(event) {
     event.preventDefault();
     const droppedFile = event.dataTransfer.files[0];
-    console.log(droppedFile)
     if (droppedFile.type.startsWith('audio/')) {
         loadAudioFile(droppedFile);
-        if(csvFileLoaded){
-            dropZone.hidden = true
-        } else{
-            dropZone.textContent = "Drop plan"
+        if (csvFileLoaded) {
+            dropZone.hidden = true;
+        } else {
+            dropZone.textContent = "Drop plan";
         }
-    }else if(droppedFile.type.startsWith('text/')){
+    } else if (droppedFile.type.startsWith('text/')) {
         loadCSVFile(droppedFile);
-        if(audioFileLoaded){
-            dropZone.hidden = true
-        } else{
-        dropZone.textContent = "Drop music"
+        if (audioFileLoaded) {
+            dropZone.hidden = true;
+        } else {
+            dropZone.textContent = "Drop music";
         }
-    }
-     else {
+    } else {
         alert('Please drop an audio file.');
     }
 }
 
-function loadCSVFile(file){
+function loadCSVFile(file) {
     const reader = new FileReader();
     reader.onload = function (e) {
         const csvData = e.target.result;
-        console.log(csvData)
 
         const lines = csvData.split('\n');
         const result = [];
@@ -99,38 +132,33 @@ function loadCSVFile(file){
             const currentline = lines[i].split(';');
 
             headers.forEach((header, index) => {
-            obj[header] = currentline[index];
+                obj[header] = currentline[index];
             });
 
             result.push(obj);
         }
-        timestamps = result
-        makeTimestampList(timestamps)
-        console.log(result);
+        timestamps = result;
+        makeTimestampList(timestamps);
     }
-    reader.readAsText(file)
-    csvFileLoaded=true
+    reader.readAsText(file);
+    csvFileLoaded = true;
 }
 
 function loadAudioFile(file) {
-    audioContext = new AudioContext();
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
     audioSource = audioContext.createBufferSource();
 
     const reader = new FileReader();
     reader.onload = function (e) {
         audioContext.decodeAudioData(e.target.result, function (buffer) {
-            // const blob = new Blob([arrayBuffer], { type: "audio/wav" });
-            // const url = window.URL.createObjectURL(blob);
-            // audioPlayer.src =
-            audioPlayer.src = file.name
+            audioPlayer.src = file.name;
             audioSource.buffer = buffer;
             audioSource.connect(audioContext.destination);
             audioFileLoaded = true;
-            // Add code to handle timestamps and text display here
         });
     };
     reader.readAsArrayBuffer(file);
-    audioFileLoaded = true
+    audioFileLoaded = true;
 }
 
 dropZone.addEventListener('dragover', function (event) {
@@ -139,37 +167,38 @@ dropZone.addEventListener('dragover', function (event) {
 dropZone.addEventListener('drop', handleDrop);
 
 audioPlayer.ontimeupdate = function() {
-    currentPlaybackTime = audioPlayer.currentTime
+    currentPlaybackTime = audioPlayer.currentTime;
     current_timestamp = 0;
-    for (let i = 0; i < timestamps.length; i++){
-        time = timestamps[i]["czas"]
-        times = time.split(':');
-        time_sec = parseInt(times[1]) + parseInt(times[0]) * 60
-        if(time_sec >= currentPlaybackTime){
-            setNextTimeStamp(i)
-            console.log(time_sec)
-            break;
+    for (let i = 0; i < timestamps.length; i++) {
+        let time = timestamps[i]["czas"];
+        let times = time.split(':');
+        let time_sec = parseInt(times[1]) + parseInt(times[0]) * 60;
+        if (time_sec >= currentPlaybackTime) {
+            updateTimeStamps(i);
+            break
         }
         current_timestamp = i;
     }
-    // timer = document.getElementById('play_timer')
-    // timer.textContent = parseFloat(currentPlaybackTime).toFixed(1)
-    updatePlayTimer()
-    console.log(currentPlaybackTime);
+    updatePlayTimer();
+    updateDeltaTimes();
 }
 
-function updatePlayTimer(){
-    currentPlaybackTime = audioPlayer.currentTime
-    timer = document.getElementById('play_timer')
-    sec = (parseInt(currentPlaybackTime) % 60)
-    min = Math.floor(currentPlaybackTime / 60)
-    if(sec < 10){
-        text = String(min) + ":0" + String(sec)
-
-    }else{
-    text = String(min) + ":" + String(sec)
-
-    }
-    // console.log(text)
-    timer.textContent = text
+function updatePlayTimer() {
+    currentPlaybackTime = audioPlayer.currentTime;
+    let timer = document.getElementById('play_timer');
+    let sec = (parseInt(currentPlaybackTime) % 60);
+    let min = Math.floor(currentPlaybackTime / 60);
+    let text = (sec < 10) ? `${min}:0${sec}` : `${min}:${sec}`;
+    timer.textContent = text;
 }
+player_forward.addEventListener('click',function(){
+    audioPlayer.currentTime += 1
+})
+
+player_backward.addEventListener('click',function(){
+    audioPlayer.currentTime -= 1
+})
+
+
+// Initialize the delta time updates every second
+setInterval(updateDeltaTimes, 1000);
