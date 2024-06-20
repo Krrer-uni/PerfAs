@@ -79,3 +79,24 @@ body {
     flex-grow: 1;
     width: 50%;
   }
+.hidden {
+    display: none;
+}
+
+.next {
+    font-weight: bold;
+    color: red;
+}
+
+.next>span {
+	font-size:  30px;
+}
+
+.inactive {
+    color: gray;
+}
+
+.timestamp-item.next .delta-time {
+    font-weight: bold;
+    color: red;
+}
